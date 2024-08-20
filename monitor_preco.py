@@ -3,6 +3,8 @@ from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
 import logging.config
 import time
+import datetime
+import pandas as pd
 
 def configura_driver():
     # Configura o Driver para interação com o Chrome
@@ -17,21 +19,39 @@ def acessa_website_do_produto(url, driver):
     # Configura o Driver para interação com o Chrome
     
     driver.get(url)
-    time.sleep(10)
+    time.sleep(5)
     return driver
     
-def coleta_preco_do_produto(driver):
+def coleta_preco_do_produto(driver, xpath):
     # Coleta o preco do produto
     
-    preco = driver.find_element(By.XPATH, '//*[@id=":rbo:"]/li[2]/div/div[2]/div/div/div/div[1]/span/span/span[2]')
+    logging.info('Extraindo o valor do produto...')
+    preco = driver.find_element(By.XPATH, xpath).text
     return preco
 
+def cria_planilha(nome, preco, url):
+    
+    logging.info('Criando planilha...')
+    dados = {
+        'Nome': [nome],
+        'Data e Hora': [datetime.datetime.now()],
+        'Preço': [preco],
+        'URL': [url]
+    }
+    
+    # Adiciona os dados ao CSV
+    df = pd.DataFrame(dados)
+    df.to_csv('preco_produto.csv', mode='a', header=not pd.io.common.file_exists('resultado_teste_velocidade.csv'), index=False)
     
 def main():
-    url = 'https://www.mercadolivre.com.br/apple-macbook-air-a2337-cinza-espacial-8-gb-256-gb-2560-px-x-1600-px-apple-m1-8-core-gpu-apple-m1-macos/p/MLB17828518?product_trigger_id=MLB17828522&quantity=1'
+    nome = 'Macbook M1'
+    url = 'https://bit.ly/3AHxnCA'
+    xpath = '//*[@id="ui-pdp-main-container"]/div[1]/div/div[1]/div[2]/div[2]/div[1]/div[1]/span/span/span[2]'
     try:
         driver = configura_driver()
         acessa_website_do_produto(url, driver)
+        preco = coleta_preco_do_produto(driver, xpath)
+        cria_planilha(nome, preco, url)
     finally:
         driver.quit()
 
