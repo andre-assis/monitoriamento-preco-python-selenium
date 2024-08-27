@@ -16,7 +16,7 @@ def configura_driver():
     return driver
 
 def acessa_website_do_produto(url, driver):
-    # Configura o Driver para interação com o Chrome
+    # Acessa o site
     
     driver.get(url)
     time.sleep(5)
